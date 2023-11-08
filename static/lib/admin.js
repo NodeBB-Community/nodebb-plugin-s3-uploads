@@ -1,8 +1,11 @@
 'use strict';
 
+// eslint-disable-next-line import/no-unresolved
+import * as alerts from 'alerts';
+
 // eslint-disable-next-line import/prefer-default-export
 export function init() {
-	$('#aws-region option[value="{region}"]').prop('selected', true);
+	$(`#aws-region option[value="${ajaxify.data.region}"]`).prop('selected', true);
 
 	$('#s3-upload-bucket').on('submit', function (e) {
 		e.preventDefault();
@@ -21,7 +24,7 @@ export function init() {
 
 	function save(type, form) {
 		var data = {
-			_csrf: '{csrf}' || $('#csrf_token').val(),
+			_csrf: config.csrf_token,
 		};
 
 		var values = $(form).serializeArray();
@@ -29,14 +32,14 @@ export function init() {
 			data[values[i].name] = values[i].value;
 		}
 
-		$.post('{forumPath}api/admin/plugins/s3-uploads/' + type, data).done(function (response) {
+		$.post(`/api/admin/plugins/s3-uploads/${type}`, data).done(function (response) {
 			if (response) {
 				ajaxify.refresh();
-				app.alertSuccess(response);
+				alerts.success(response);
 			}
 		}).fail(function (jqXHR) {
 			ajaxify.refresh();
-			app.alertError(jqXHR.responseJSON ? jqXHR.responseJSON.error : 'Error saving!');
+			alerts.error(jqXHR.responseJSON ? jqXHR.responseJSON.error : 'Error saving!');
 		});
 	}
 }

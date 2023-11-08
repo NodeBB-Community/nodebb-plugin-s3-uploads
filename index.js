@@ -15,6 +15,7 @@ const gm = require('gm');
 const im = gm.subClass({ imageMagick: true });
 const meta = require.main.require('./src/meta');
 const db = require.main.require('./src/database');
+const routeHelpers = require.main.require('./src/routes/helpers');
 
 const Package = require('./package.json');
 
@@ -142,29 +143,27 @@ plugin.deactivate = function (data) {
 plugin.load = function (params, callback) {
 	fetchSettings((err) => {
 		if (err) {
-			return winston.error(err.message);
+			winston.error(err.message);
+			return callback(err);
 		}
 		const adminRoute = '/admin/plugins/s3-uploads';
+		const { router, middleware } = params;
+		routeHelpers.setupAdminPageRoute(router, adminRoute, renderAdmin);
 
-		params.router.get(adminRoute, params.middleware.applyCSRF, params.middleware.admin.buildHeader, renderAdmin);
-		params.router.get(`/api${adminRoute}`, params.middleware.applyCSRF, renderAdmin);
-
-		params.router.post(`/api${adminRoute}/s3settings`, s3settings);
-		params.router.post(`/api${adminRoute}/credentials`, credentials);
+		params.router.post(`/api${adminRoute}/s3settings`, middleware.applyCSRF, s3settings);
+		params.router.post(`/api${adminRoute}/credentials`, middleware.applyCSRF, credentials);
 
 		callback();
 	});
 };
 
 function renderAdmin(req, res) {
-	// Regenerate csrf token
-	const token = req.csrfToken();
-
 	let forumPath = nconf.get('url');
 	if (forumPath.split('').reverse()[0] !== '/') {
 		forumPath += '/';
 	}
 	const data = {
+		title: 'S3 Uploads',
 		bucket: settings.bucket,
 		host: settings.host,
 		path: settings.path,
@@ -172,7 +171,6 @@ function renderAdmin(req, res) {
 		region: settings.region,
 		accessKeyId: (accessKeyIdFromDb && settings.accessKeyId) || '',
 		secretAccessKey: (accessKeyIdFromDb && settings.secretAccessKey) || '',
-		csrf: token,
 	};
 
 	res.render('admin/plugins/s3-uploads', data);
@@ -226,7 +224,9 @@ plugin.uploadImage = function (data, callback) {
 	}
 
 	const type = image.url ? 'url' : 'file';
-	const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/pjpeg', 'image/jpg', 'image/svg+xml'];
+	const allowedMimeTypes = [
+		'image/png', 'image/jpeg', 'image/gif', 'image/pjpeg', 'image/jpg', 'image/svg+xml'
+	];
 
 	if (type === 'file') {
 		if (!image.path) {
