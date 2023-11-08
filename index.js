@@ -225,7 +225,7 @@ plugin.uploadImage = function (data, callback) {
 
 	const type = image.url ? 'url' : 'file';
 	const allowedMimeTypes = [
-		'image/png', 'image/jpeg', 'image/gif', 'image/pjpeg', 'image/jpg', 'image/svg+xml'
+		'image/png', 'image/jpeg', 'image/gif', 'image/pjpeg', 'image/jpg', 'image/svg+xml',
 	];
 
 	if (type === 'file') {
