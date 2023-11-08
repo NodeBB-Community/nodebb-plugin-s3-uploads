@@ -48,56 +48,57 @@ export S3_UPLOADS_PATH="path"
 
 			<h3>Database Stored configuration:</h3>
 			<form id="s3-upload-bucket">
-				<label for="s3bucket">Bucket</label><br/>
-				<input type="text" id="s3bucket" name="bucket" value="{bucket}" title="S3 Bucket" class="form-control input-lg"
-					   placeholder="S3 Bucket"><br/>
+				<div class="mb-3">
+					<label class="form-label" for="s3bucket">Bucket</label>
+					<input type="text" id="s3bucket" name="bucket" value="{bucket}" title="S3 Bucket" class="form-control" placeholder="S3 Bucket">
+				</div>
 
-				<label for="s3host">Host</label><br/>
-				<input type="text" id="s3host" name="host" value="{host}" title="S3 Host" class="form-control input-lg"
-					   placeholder="website.com"><br/>
+				<div class="mb-3">
+					<label class="form-label" for="s3host">Host</label>
+					<input type="text" id="s3host" name="host" value="{host}" title="S3 Host" class="form-control" placeholder="website.com">
+				</div>
 
-				<label for="s3path">Path</label><br/>
-				<input type="text" id="s3path" name="path" value="{path}" title="S3 Path" class="form-control input-lg"
-					   placeholder="/assets"><br/>
+				<div class="mb-3">
+					<label class="form-label" for="s3path">Path</label>
+					<input type="text" id="s3path" name="path" value="{path}" title="S3 Path" class="form-control" placeholder="/assets">
+				</div>
 
-				<label for="aws-region">Region</label><br/>
-				<select id="aws-region" name="region" title="AWS Region" class="form-control">
-					<option value="">..</option>
-					<option value="us-east-1">Standard (us-east-1)</option>
-					<option value="us-east-2">US East(Ohio) (us-east-2)</option>
-					<option value="us-west-1">N. California (us-west-1)</option>
-					<option value="us-west-2">Oregon (us-west-2)</option>
-					<option value="ca-central-1">Canada (ca-central-1)</option>
-					<option value="eu-west-1">Ireland (eu-west-1)</option>
-					<option value="eu-west-2">London (eu-west-2)</option>
-					<option value="eu-central-1">Frankfurt (eu-central-1)</option>
-					<option value="ap-northeast-1">Tokyo (ap-northeast-1)</option>
-					<option value="ap-northeast-2">Seoul (ap-northeast-2)</option>
-					<option value="ap-southeast-1">Singapore (ap-southeast-1)</option>
-					<option value="ap-southeast-2">Sydney (ap-southeast-2)</option>
-					<option value="ap-south-1">Mumbai (ap-south-1)</option>
-					<option value="sa-east-1">São Paulo (sa-east-1)</option>
-				</select>
-				<br/>
-
+				<div class="mb-3">
+					<label class="form-label" for="aws-region">Region</label>
+					<select id="aws-region" name="region" title="AWS Region" class="form-select">
+						<option value="">..</option>
+						<option value="us-east-1">Standard (us-east-1)</option>
+						<option value="us-east-2">US East(Ohio) (us-east-2)</option>
+						<option value="us-west-1">N. California (us-west-1)</option>
+						<option value="us-west-2">Oregon (us-west-2)</option>
+						<option value="ca-central-1">Canada (ca-central-1)</option>
+						<option value="eu-west-1">Ireland (eu-west-1)</option>
+						<option value="eu-west-2">London (eu-west-2)</option>
+						<option value="eu-central-1">Frankfurt (eu-central-1)</option>
+						<option value="ap-northeast-1">Tokyo (ap-northeast-1)</option>
+						<option value="ap-northeast-2">Seoul (ap-northeast-2)</option>
+						<option value="ap-southeast-1">Singapore (ap-southeast-1)</option>
+						<option value="ap-southeast-2">Sydney (ap-southeast-2)</option>
+						<option value="ap-south-1">Mumbai (ap-south-1)</option>
+						<option value="sa-east-1">São Paulo (sa-east-1)</option>
+					</select>
+				</div>
 				<button class="btn btn-primary" type="submit">Save</button>
 			</form>
 
-			<br><br>
+			<hr/>
+
 			<form id="s3-upload-credentials">
-				<label for="bucket">Credentials</label><br/>
+				<label class="form-label mb-2" for="bucket">Credentials</label>
 				<div class="alert alert-warning">
 					Configuring this plugin using the fields below is <strong>NOT recommended</strong>, as it can be a potential
 					security issue. We highly recommend that you investigate using either <strong>Environment Variables</strong> or
 					<strong>Instance Meta-data</strong>
 				</div>
-				<input type="text" name="accessKeyId" value="{accessKeyId}" maxlength="20" title="Access Key ID"
-					   class="form-control input-lg" placeholder="Access Key ID"><br/>
-				<input type="text" name="secretAccessKey" value="{secretAccessKey}" title="Secret Access Key"
-					   class="form-control input-lg" placeholder="Secret Access Key"><br/>
+				<input type="text" name="accessKeyId" value="{accessKeyId}" maxlength="20" title="Access Key ID" class="form-control mb-3" placeholder="Access Key ID">
+				<input type="text" name="secretAccessKey" value="{secretAccessKey}" title="Secret Access Key" class="form-control mb-3" placeholder="Secret Access Key">
 				<button class="btn btn-primary" type="submit">Save</button>
 			</form>
-
 		</div>
 
 		<!-- IMPORT admin/partials/settings/toc.tpl -->
