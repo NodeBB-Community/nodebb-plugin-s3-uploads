@@ -16,6 +16,7 @@ const im = gm.subClass({ imageMagick: true });
 const meta = require.main.require('./src/meta');
 const db = require.main.require('./src/database');
 const routeHelpers = require.main.require('./src/routes/helpers');
+const file = require.main.require('./src/file');
 
 const Package = require('./package.json');
 
@@ -209,6 +210,11 @@ function saveSettings(settings, res, next) {
 	});
 }
 
+function isExtensionAllowed(filePath, allowed) {
+	const extension = path.extname(filePath).toLowerCase();
+	return !(allowed.length > 0 && (!extension || extension === '.' || !allowed.includes(extension)));
+}
+
 plugin.uploadImage = function (data, callback) {
 	const { image } = data;
 
@@ -224,26 +230,25 @@ plugin.uploadImage = function (data, callback) {
 	}
 
 	const type = image.url ? 'url' : 'file';
-	const allowedMimeTypes = [
-		'image/png', 'image/jpeg', 'image/gif', 'image/pjpeg', 'image/jpg', 'image/svg+xml',
-	];
+	const allowed = file.allowedExtensions();
 
 	if (type === 'file') {
 		if (!image.path) {
 			return callback(new Error('invalid image path'));
 		}
 
-		if (allowedMimeTypes.indexOf(mime.lookup(image.path)) === -1) {
-			return callback(new Error('invalid mime type'));
+		if (!isExtensionAllowed(image.path, allowed)) {
+			return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
 		}
 
 		fs.readFile(image.path, (err, buffer) => {
 			uploadToS3(image.name, err, buffer, callback);
 		});
 	} else {
-		if (allowedMimeTypes.indexOf(mime.lookup(image.url)) === -1) {
-			return callback(new Error('invalid mime type'));
+		if (!isExtensionAllowed(image.url, allowed)) {
+			return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
 		}
+
 		const filename = image.url.split('/').pop();
 
 		const imageDimension = parseInt(meta.config.profileImageDimension, 10) || 128;
