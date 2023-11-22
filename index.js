@@ -16,7 +16,7 @@ const im = gm.subClass({ imageMagick: true });
 const meta = require.main.require('./src/meta');
 const db = require.main.require('./src/database');
 const routeHelpers = require.main.require('./src/routes/helpers');
-const file = require.main.require('./src/file');
+const fileModule = require.main.require('./src/file');
 
 const Package = require('./package.json');
 
@@ -230,7 +230,7 @@ plugin.uploadImage = function (data, callback) {
 	}
 
 	const type = image.url ? 'url' : 'file';
-	const allowed = file.allowedExtensions();
+	const allowed = fileModule.allowedExtensions();
 
 	if (type === 'file') {
 		if (!image.path) {
@@ -289,6 +289,11 @@ plugin.uploadFile = function (data, callback) {
 	if (file.size > parseInt(meta.config.maximumFileSize, 10) * 1024) {
 		winston.error(`error:file-too-big, ${meta.config.maximumFileSize}`);
 		return callback(new Error(`[[error:file-too-big, ${meta.config.maximumFileSize}]]`));
+	}
+
+	const allowed = fileModule.allowedExtensions();
+	if (!isExtensionAllowed(file.path, allowed)) {
+		return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
 	}
 
 	fs.readFile(file.path, (err, buffer) => {
