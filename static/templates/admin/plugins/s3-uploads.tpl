@@ -67,20 +67,37 @@ export S3_UPLOADS_PATH="path"
 					<label class="form-label" for="aws-region">Region</label>
 					<select id="aws-region" name="region" title="AWS Region" class="form-select">
 						<option value="">..</option>
-						<option value="us-east-1">Standard (us-east-1)</option>
-						<option value="us-east-2">US East(Ohio) (us-east-2)</option>
-						<option value="us-west-1">N. California (us-west-1)</option>
-						<option value="us-west-2">Oregon (us-west-2)</option>
-						<option value="ca-central-1">Canada (ca-central-1)</option>
-						<option value="eu-west-1">Ireland (eu-west-1)</option>
-						<option value="eu-west-2">London (eu-west-2)</option>
-						<option value="eu-central-1">Frankfurt (eu-central-1)</option>
-						<option value="ap-northeast-1">Tokyo (ap-northeast-1)</option>
+						<option value="af-south-1">Cape Town (af-south-1)</option>
+						<option value="ap-east-1">Hong Kong (ap-east-1)</option>
+						<option value="ap-south-1">Mumbai (ap-south-1)</option>
+						<option value="ap-northeast-3">Osaka (ap-northeast-3)</option>
 						<option value="ap-northeast-2">Seoul (ap-northeast-2)</option>
 						<option value="ap-southeast-1">Singapore (ap-southeast-1)</option>
 						<option value="ap-southeast-2">Sydney (ap-southeast-2)</option>
-						<option value="ap-south-1">Mumbai (ap-south-1)</option>
+						<option value="ap-northeast-1">Tokyo (ap-northeast-1)</option>
+						<option value="ca-central-1">Canada (ca-central-1)</option>
+						<option value="eu-central-1">Frankfurt (eu-central-1)</option>
+						<option value="eu-west-1">Ireland (eu-west-1)</option>
+						<option value="eu-west-2">London (eu-west-2)</option>
+						<option value="eu-west-3">Paris (eu-west-3)</option>
+						<option value="eu-north-1">Stockholm (eu-north-1)</option>
+						<option value="me-south-1">Bahrain (me-south-1)</option>
 						<option value="sa-east-1">São Paulo (sa-east-1)</option>
+						<option value="us-gov-east-1">GovCloud US-East (us-gov-east-1)</option>
+						<option value="us-gov-west-1">GovCloud US-West (us-gov-west-1)</option>
+						<option value="us-east-1">US East (N. Virginia) (us-east-1)</option>
+						<option value="us-east-2">US East (Ohio) (us-east-2)</option>
+						<option value="us-west-1">US West (N. California) (us-west-1)</option>
+						<option value="us-west-2">US West (Oregon) (us-west-2)</option>
+						<option value="ap-south-2">Hyderabad (ap-south-2)</option>
+						<option value="ap-southeast-3">Jakarta (ap-southeast-3)</option>
+						<option value="ap-southeast-4">Melbourne (ap-southeast-4)</option>
+						<option value="ca-west-1">Canada West (Calgary) (ca-west-1)</option>
+						<option value="eu-south-1">Milan (eu-south-1)</option>
+						<option value="eu-south-2">Spain (eu-south-2)</option>
+						<option value="eu-central-2">Zurich (eu-central-2)</option>
+						<option value="il-central-1">Israel (Tel Aviv) (il-central-1)</option>
+						<option value="me-central-1">Middle East (UAE) (me-central-1)</option>
 					</select>
 				</div>
 				<button class="btn btn-primary" type="submit">Save</button>
