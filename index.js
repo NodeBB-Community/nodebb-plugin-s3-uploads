@@ -22,7 +22,6 @@ const Package = require('./package.json');
 
 const plugin = module.exports;
 
-// let S3Conn = null;
 const settings = {
 	accessKeyId: false,
 	secretAccessKey: false,
@@ -94,23 +93,6 @@ function fetchSettings(callback) {
 			settings.region = newSettings.region;
 		}
 
-		// if (settings.accessKeyId && settings.secretAccessKey) {
-		// 	AWS.config.update({
-		// 		accessKeyId: settings.accessKeyId,
-		// 		secretAccessKey: settings.secretAccessKey,
-		// 	});
-		// }
-
-		// if (settings.region) {
-		// 	AWS.config.update({
-		// 		region: settings.region,
-		// 	});
-		// }
-
-		// AWS.config.update({
-		// 	signatureVersion: 'v4',
-		// });
-
 		if (typeof callback === 'function') {
 			callback();
 		}
@@ -118,13 +100,6 @@ function fetchSettings(callback) {
 }
 
 function consS3() {
-	// if (!S3Conn) {
-	//  S3Conn = new AWS.S3({
-	//      endpoint: new AWS.Endpoint(settings.endpoint),
-	//  });
-	// }
-
-	// return S3Conn;
 	return new S3({
 		endpoint: `${settings.endpoint}`,
 		accessKeyId: `${settings.accessKeyId}`,
@@ -152,7 +127,6 @@ plugin.activate = function (data) {
 
 plugin.deactivate = function (data) {
 	if (data.id === 'nodebb-plugin-s3-uploads') {
-		// S3Conn = null;
 	}
 };
 
