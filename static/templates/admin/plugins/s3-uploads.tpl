@@ -20,6 +20,12 @@ export S3_UPLOADS_HOST="https://customcdn.yourdomain.com"
 export S3_UPLOADS_PATH="/assets"
 </code></pre>
 
+            <p>
+				Endpoint is optional. You should only supply it while using a custom S3 compatible service. For example, if you are
+				using Cloudflare R2, it should be put as https://${ACCOUNT_ID}.r2.cloudflarestorage.com/. Note this URL is for the
+				API calls only, and an end user should not be able to access it.
+			</p>
+
 			<p>
 				Asset host and asset path are optional. You can leave these blank to default to the standard asset url -
 				http://mybucket.s3.amazonaws.com/uuid.jpg.<br/>
