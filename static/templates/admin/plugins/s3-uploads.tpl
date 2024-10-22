@@ -14,9 +14,10 @@
 			<h3>Environment Variables</h3>
 <pre><code>export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="yyyyy"
-export S3_UPLOADS_BUCKET="zzzz"
-export S3_UPLOADS_HOST="host"
-export S3_UPLOADS_PATH="path"
+export S3_UPLOADS_BUCKET="mybucket"
+export S3_UPLOADS_ENDPOINT="https://youraccountid.customs3compatiable.com"
+export S3_UPLOADS_HOST="https://customcdn.yourdomain.com"
+export S3_UPLOADS_PATH="/assets"
 </code></pre>
 
 			<p>
@@ -52,7 +53,10 @@ export S3_UPLOADS_PATH="path"
 					<label class="form-label" for="s3bucket">Bucket</label>
 					<input type="text" id="s3bucket" name="bucket" value="{bucket}" title="S3 Bucket" class="form-control" placeholder="S3 Bucket">
 				</div>
-
+				<div class="mb-3">
+					<label class="form-label" for="endpoint">Endpoint</label>
+					<input type="text" id="endpoint" name="endpoint" value="{endpoint}" title="S3 Endpoint" class="form-control" placeholder="s3.amazonaws.com">
+				</div>
 				<div class="mb-3">
 					<label class="form-label" for="s3host">Host</label>
 					<input type="text" id="s3host" name="host" value="{host}" title="S3 Host" class="form-control" placeholder="website.com">
@@ -67,6 +71,7 @@ export S3_UPLOADS_PATH="path"
 					<label class="form-label" for="aws-region">Region</label>
 					<select id="aws-region" name="region" title="AWS Region" class="form-select">
 						<option value="">..</option>
+						<option value="auto">auto</option>
 						<option value="af-south-1">Cape Town (af-south-1)</option>
 						<option value="ap-east-1">Hong Kong (ap-east-1)</option>
 						<option value="ap-south-1">Mumbai (ap-south-1)</option>
@@ -112,7 +117,7 @@ export S3_UPLOADS_PATH="path"
 					security issue. We highly recommend that you investigate using either <strong>Environment Variables</strong> or
 					<strong>Instance Meta-data</strong>
 				</div>
-				<input type="text" name="accessKeyId" value="{accessKeyId}" maxlength="20" title="Access Key ID" class="form-control mb-3" placeholder="Access Key ID">
+				<input type="text" name="accessKeyId" value="{accessKeyId}" title="Access Key ID" class="form-control mb-3" placeholder="Access Key ID">
 				<input type="text" name="secretAccessKey" value="{secretAccessKey}" title="Secret Access Key" class="form-control mb-3" placeholder="Secret Access Key">
 				<button class="btn btn-primary" type="submit">Save</button>
 			</form>

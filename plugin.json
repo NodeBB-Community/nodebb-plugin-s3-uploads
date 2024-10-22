@@ -4,7 +4,6 @@
         { "hook": "static:app.load", "method": "load"},
         { "hook": "action:plugin.activate", "method": "activate"},
         { "hook": "action:plugin.deactivate", "method": "deactivate"},
-
         { "hook": "filter:admin.header.build", "method": "admin.menu"},
         { "hook": "filter:uploadImage", "method": "uploadImage", "priority": 6 },
         { "hook": "filter:uploadFile", "method": "uploadFile", "priority": 6 }
