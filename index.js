@@ -1,7 +1,6 @@
 'use strict';
 
-
-const AWS = require('aws-sdk');
+const S3 = require('@aws-sdk/client-s3');
 const mime = require('mime');
 const uuid = require('uuid').v4;
 const fs = require('fs');
@@ -22,12 +21,12 @@ const Package = require('./package.json');
 
 const plugin = module.exports;
 
-let S3Conn = null;
 const settings = {
 	accessKeyId: false,
 	secretAccessKey: false,
 	region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
 	bucket: process.env.S3_UPLOADS_BUCKET || undefined,
+	endpoint: process.env.S3_UPLOADS_ENDPOINT || 's3.amazonaws.com',
 	host: process.env.S3_UPLOADS_HOST || 's3.amazonaws.com',
 	path: process.env.S3_UPLOADS_PATH || undefined,
 };
@@ -75,6 +74,12 @@ function fetchSettings(callback) {
 			settings.host = newSettings.host;
 		}
 
+		if (!newSettings.endpoint) {
+			settings.endpoint = process.env.S3_UPLOADS_ENDPOINT || '';
+		} else {
+			settings.endpoint = newSettings.endpoint;
+		}
+
 		if (!newSettings.path) {
 			settings.path = process.env.S3_UPLOADS_PATH || '';
 		} else {
@@ -87,35 +92,21 @@ function fetchSettings(callback) {
 			settings.region = newSettings.region;
 		}
 
-		if (settings.accessKeyId && settings.secretAccessKey) {
-			AWS.config.update({
-				accessKeyId: settings.accessKeyId,
-				secretAccessKey: settings.secretAccessKey,
-			});
-		}
-
-		if (settings.region) {
-			AWS.config.update({
-				region: settings.region,
-			});
-		}
-
-		AWS.config.update({
-			signatureVersion: 'v4',
-		});
-
 		if (typeof callback === 'function') {
 			callback();
 		}
 	});
 }
 
-function S3() {
-	if (!S3Conn) {
-		S3Conn = new AWS.S3();
-	}
-
-	return S3Conn;
+function constructS3() {
+	return new S3.S3Client({
+		region: settings.region,
+		endpoint: settings.endpoint,
+		credentials: {
+			accessKeyId: settings.accessKeyId,
+			secretAccessKey: settings.secretAccessKey,
+		},
+	});
 }
 
 function makeError(err) {
@@ -137,7 +128,7 @@ plugin.activate = function (data) {
 
 plugin.deactivate = function (data) {
 	if (data.id === 'nodebb-plugin-s3-uploads') {
-		S3Conn = null;
+		// pass
 	}
 };
 
@@ -167,6 +158,7 @@ function renderAdmin(req, res) {
 		title: 'S3 Uploads',
 		bucket: settings.bucket,
 		host: settings.host,
+		endpoint: settings.endpoint,
 		path: settings.path,
 		forumPath: forumPath,
 		region: settings.region,
@@ -181,6 +173,7 @@ function s3settings(req, res, next) {
 	const data = req.body;
 	const newSettings = {
 		bucket: data.bucket || '',
+		endpoint: data.endpoint || '',
 		host: data.host || '',
 		path: data.path || '',
 		region: data.region || '',
@@ -301,7 +294,7 @@ plugin.uploadFile = function (data, callback) {
 	});
 };
 
-function uploadToS3(filename, err, buffer, callback) {
+async function uploadToS3(filename, err, buffer, callback) {
 	if (err) {
 		return callback(makeError(err));
 	}
@@ -326,13 +319,12 @@ function uploadToS3(filename, err, buffer, callback) {
 		Key: s3KeyPath + uuid() + path.extname(filename),
 		Body: buffer,
 		ContentLength: buffer.length,
-		ContentType: mime.lookup(filename),
+		ContentType: mime.getType(filename),
 	};
 
-	S3().putObject(params, (err) => {
-		if (err) {
-			return callback(makeError(err));
-		}
+	try {
+		const s3Client = constructS3();
+		await s3Client.send(new S3.PutObjectCommand(params));
 
 		// amazon has https enabled, we use it by default
 		let host = `https://${params.Bucket}.s3.amazonaws.com`;
@@ -348,7 +340,9 @@ function uploadToS3(filename, err, buffer, callback) {
 			name: filename,
 			url: `${host}/${params.Key}`,
 		});
-	});
+	} catch (err) {
+		callback(makeError(err));
+	}
 }
 
 plugin.admin = {};
