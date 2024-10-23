@@ -1,7 +1,6 @@
 'use strict';
 
-
-const S3 = require('aws-sdk/clients/s3');
+const S3 = require('@aws-sdk/client-s3');
 const mime = require('mime');
 const uuid = require('uuid').v4;
 const fs = require('fs');
@@ -99,12 +98,14 @@ function fetchSettings(callback) {
 	});
 }
 
-function consS3() {
-	return new S3({
-		endpoint: `${settings.endpoint}`,
-		accessKeyId: `${settings.accessKeyId}`,
-		secretAccessKey: `${settings.secretAccessKey}`,
-		signatureVersion: 'v4',
+function constructS3() {
+	return new S3.S3Client({
+		region: settings.region,
+		endpoint: settings.endpoint,
+		credentials: {
+			accessKeyId: settings.accessKeyId,
+			secretAccessKey: settings.secretAccessKey,
+		},
 	});
 }
 
@@ -127,6 +128,7 @@ plugin.activate = function (data) {
 
 plugin.deactivate = function (data) {
 	if (data.id === 'nodebb-plugin-s3-uploads') {
+		// pass
 	}
 };
 
@@ -292,7 +294,7 @@ plugin.uploadFile = function (data, callback) {
 	});
 };
 
-function uploadToS3(filename, err, buffer, callback) {
+async function uploadToS3(filename, err, buffer, callback) {
 	if (err) {
 		return callback(makeError(err));
 	}
@@ -317,13 +319,12 @@ function uploadToS3(filename, err, buffer, callback) {
 		Key: s3KeyPath + uuid() + path.extname(filename),
 		Body: buffer,
 		ContentLength: buffer.length,
-		ContentType: mime.lookup(filename),
+		ContentType: mime.getType(filename),
 	};
 
-	consS3().putObject(params, (err) => {
-		if (err) {
-			return callback(makeError(err));
-		}
+	try {
+		const s3Client = constructS3();
+		await s3Client.send(new S3.PutObjectCommand(params));
 
 		// amazon has https enabled, we use it by default
 		let host = `https://${params.Bucket}.s3.amazonaws.com`;
@@ -339,7 +340,9 @@ function uploadToS3(filename, err, buffer, callback) {
 			name: filename,
 			url: `${host}/${params.Key}`,
 		});
-	});
+	} catch (err) {
+		callback(makeError(err));
+	}
 }
 
 plugin.admin = {};

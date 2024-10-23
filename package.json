@@ -32,9 +32,9 @@
     "compatibility": "^3.2.0"
   },
   "dependencies": {
-    "aws-sdk": "^2.1691.0",
+    "@aws-sdk/client-s3": "^3.677.0",
     "gm": "~1.25.0",
-    "mime": "~1.2.11",
+    "mime": "~3.0",
     "request": "~2.88.2",
     "uuid": "~1.4.1"
   },
