@@ -5,8 +5,6 @@ import * as alerts from 'alerts';
 
 // eslint-disable-next-line import/prefer-default-export
 export function init() {
-	$(`#aws-region option[value="${ajaxify.data.region}"]`).prop('selected', true);
-
 	$('#s3-upload-bucket').on('submit', function (e) {
 		e.preventDefault();
 		save('s3settings', this);
