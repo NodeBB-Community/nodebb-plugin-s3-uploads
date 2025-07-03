@@ -29,7 +29,7 @@
     "url": "https://github.com/NodeBB-Community/nodebb-plugin-s3-uploads/issues"
   },
   "nbbpm": {
-    "compatibility": "^3.2.0"
+    "compatibility": "^3.2.0 || ^4.x"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.677.0",
