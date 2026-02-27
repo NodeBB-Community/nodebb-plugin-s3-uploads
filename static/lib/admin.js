@@ -6,6 +6,7 @@ export function init() {
 	$('#s3-upload-bucket').on('submit', function (e) {
 		e.preventDefault();
 		save('s3settings', this);
+		return false;
 	});
 
 	$('#s3-upload-credentials').on('submit', function (e) {
@@ -16,6 +17,7 @@ export function init() {
 				save('credentials', form);
 			}
 		});
+		return false;
 	});
 
 	function save(type, form) {
@@ -30,11 +32,9 @@ export function init() {
 
 		$.post(`/api/admin/plugins/s3-uploads/${type}`, data).done(function (response) {
 			if (response) {
-				ajaxify.refresh();
 				alerts.success(response);
 			}
 		}).fail(function (jqXHR) {
-			ajaxify.refresh();
 			alerts.error(jqXHR.responseJSON ? jqXHR.responseJSON.error : 'Error saving!');
 		});
 	}

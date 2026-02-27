@@ -25,6 +25,7 @@ const settings = {
 	accessKeyId: false,
 	secretAccessKey: false,
 	region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
+	acl: process.env.S3_UPLOADS_ACL || '',
 	bucket: process.env.S3_UPLOADS_BUCKET || undefined,
 	endpoint: process.env.S3_UPLOADS_ENDPOINT || 's3.amazonaws.com',
 	host: process.env.S3_UPLOADS_HOST || 's3.amazonaws.com',
@@ -90,6 +91,12 @@ function fetchSettings(callback) {
 			settings.region = process.env.AWS_DEFAULT_REGION || '';
 		} else {
 			settings.region = newSettings.region;
+		}
+
+		if (!newSettings.acl) {
+			settings.acl = process.env.S3_UPLOADS_ACL || '';
+		} else {
+			settings.acl = newSettings.acl;
 		}
 
 		if (typeof callback === 'function') {
@@ -162,6 +169,7 @@ function renderAdmin(req, res) {
 		path: settings.path,
 		forumPath: forumPath,
 		region: settings.region,
+		acl: settings.acl,
 		accessKeyId: (accessKeyIdFromDb && settings.accessKeyId) || '',
 		secretAccessKey: (accessKeyIdFromDb && settings.secretAccessKey) || '',
 	};
@@ -177,6 +185,7 @@ function s3settings(req, res, next) {
 		host: data.host || '',
 		path: data.path || '',
 		region: data.region || '',
+		acl: data.acl || '',
 	};
 
 	saveSettings(newSettings, res, next);
@@ -315,12 +324,14 @@ async function uploadToS3(filename, err, buffer, callback) {
 
 	const params = {
 		Bucket: settings.bucket,
-		ACL: 'public-read',
 		Key: s3KeyPath + uuid() + path.extname(filename),
 		Body: buffer,
 		ContentLength: buffer.length,
 		ContentType: mime.getType(filename),
 	};
+	if (settings.ACL) {
+		params.ACL = settings.ACL;
+	}
 
 	try {
 		const s3Client = constructS3();

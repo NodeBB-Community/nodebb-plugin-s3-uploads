@@ -77,6 +77,15 @@ export S3_UPLOADS_PATH="/assets"
 					<label class="form-label" for="aws-region">Region</label>
 					<input type="text" id="aws-region" name="region" value="{region}" title="AWS Region" class="form-control" placeholder="us-east-1">
 				</div>
+				<div class="mb-3">
+					<label class="form-label" for="aws-acl">ACL</label>
+					<select class="form-select" id="aws-acl" name="acl" value="{acl}" title="AWS ACL">
+						<option value="" {{{ if (acl == "") }}}selected{{{ end }}}>(disabled)</option>
+						<option value="public-read" {{{ if (acl == "public-read") }}}selected{{{ end }}}>public-read</option>
+						<option value="private" {{{ if (acl == "private") }}}selected{{{ end }}}>private</option>
+					</select>
+				</div>
+
 				<button class="btn btn-primary" type="submit">Save</button>
 			</form>
 
