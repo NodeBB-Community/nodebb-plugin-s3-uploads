@@ -1,9 +1,7 @@
 'use strict';
 
-// eslint-disable-next-line import/no-unresolved
 import * as alerts from 'alerts';
 
-// eslint-disable-next-line import/prefer-default-export
 export function init() {
 	$('#s3-upload-bucket').on('submit', function (e) {
 		e.preventDefault();
@@ -12,7 +10,7 @@ export function init() {
 
 	$('#s3-upload-credentials').on('submit', function (e) {
 		e.preventDefault();
-		var form = this;
+		const form = this;
 		bootbox.confirm('Are you sure you wish to store your credentials for accessing S3 in the database?', function (confirm) {
 			if (confirm) {
 				save('credentials', form);
@@ -21,12 +19,12 @@ export function init() {
 	});
 
 	function save(type, form) {
-		var data = {
+		const data = {
 			_csrf: config.csrf_token,
 		};
 
-		var values = $(form).serializeArray();
-		for (var i = 0, l = values.length; i < l; i++) {
+		const values = $(form).serializeArray();
+		for (let i = 0, l = values.length; i < l; i++) {
 			data[values[i].name] = values[i].value;
 		}
 
