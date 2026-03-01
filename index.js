@@ -212,8 +212,8 @@ function saveSettings(settings, res, next) {
 	});
 }
 
-function isExtensionAllowed(filePath, allowed) {
-	const extension = path.extname(filePath).toLowerCase();
+function isExtensionAllowed(filename, allowed) {
+	const extension = path.extname(filename).toLowerCase();
 	return !(allowed.length > 0 && (!extension || extension === '.' || !allowed.includes(extension)));
 }
 
@@ -239,7 +239,7 @@ plugin.uploadImage = function (data, callback) {
 			return callback(new Error('invalid image path'));
 		}
 
-		if (!isExtensionAllowed(image.path, allowed)) {
+		if (!isExtensionAllowed(image.name, allowed)) {
 			return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
 		}
 
@@ -294,7 +294,7 @@ plugin.uploadFile = function (data, callback) {
 	}
 
 	const allowed = fileModule.allowedExtensions();
-	if (!isExtensionAllowed(file.path, allowed)) {
+	if (!isExtensionAllowed(file.name, allowed)) {
 		return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
 	}
 
