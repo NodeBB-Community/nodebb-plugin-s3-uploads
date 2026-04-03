@@ -30,7 +30,7 @@ export function init() {
 			data[values[i].name] = values[i].value;
 		}
 
-		$.post(`/api/admin/plugins/s3-uploads/${type}`, data).done(function (response) {
+		$.post(`${config.relative_path}/api/admin/plugins/s3-uploads/${type}`, data).done(function (response) {
 			if (response) {
 				alerts.success(response);
 			}
