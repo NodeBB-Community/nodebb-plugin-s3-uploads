@@ -23,7 +23,7 @@ This plugin is a fork of [nodebb-plugin-s3-uploads](https://github.com/earthsenz
 | 0.2.x          | NodeBB         | <= 0.5.3 and >= 0.3.2 |
 | 0.3.3          | NodeBB         | >= 0.6.0 |
 | 0.3.4          | NodeBB         | >= 1.0.0 |
-| 3.0.10         | NodeBB         | ^3.2.0 || ^4.x |
+| 3.0.10         | NodeBB         | ^3.2.0 or ^4.x |
 
 A plugin for NodeBB to take file uploads and store them on S3, uses the `filter:uploadImage` hook in NodeBB.
 
