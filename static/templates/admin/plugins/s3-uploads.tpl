@@ -98,8 +98,13 @@ export S3_UPLOADS_PATH="/assets"
 					security issue. We highly recommend that you investigate using either <strong>Environment Variables</strong> or
 					<strong>Instance Meta-data</strong>
 				</div>
-				<input type="text" name="accessKeyId" value="{accessKeyId}" title="Access Key ID" class="form-control mb-3" placeholder="Access Key ID">
+
+				<label class="form-label" for="accessKeyId">Access Key ID</label>
+				<input type="text" id="accessKeyId" name="accessKeyId" value="{accessKeyId}" title="Access Key ID" class="form-control mb-3" placeholder="Access Key ID">
+
+				<label class="form-label" for="secretAccessKey">Secret Access Key</label>
 				<input type="text" name="secretAccessKey" value="{secretAccessKey}" title="Secret Access Key" class="form-control mb-3" placeholder="Secret Access Key">
+
 				<button class="btn btn-primary" type="submit">Save</button>
 			</form>
 		</div>

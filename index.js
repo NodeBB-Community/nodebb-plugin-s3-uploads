@@ -4,14 +4,11 @@ const S3 = require('@aws-sdk/client-s3');
 const mime = require('mime');
 const uuid = require('uuid').v4;
 const fs = require('fs');
-const request = require('request');
 const path = require('path');
 
 const winston = require.main.require('winston');
 const nconf = require.main.require('nconf');
-const gm = require('gm');
-
-const im = gm.subClass({ imageMagick: true });
+const sharp = require.main.require('sharp');
 const meta = require.main.require('./src/meta');
 const db = require.main.require('./src/database');
 const routeHelpers = require.main.require('./src/routes/helpers');
@@ -22,8 +19,8 @@ const Package = require('./package.json');
 const plugin = module.exports;
 
 const settings = {
-	accessKeyId: false,
-	secretAccessKey: false,
+	accessKeyId: process.env.AWS_ACCESS_KEY_ID || false,
+	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || false,
 	region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
 	acl: process.env.S3_UPLOADS_ACL || '',
 	bucket: process.env.S3_UPLOADS_BUCKET || undefined,
@@ -33,127 +30,18 @@ const settings = {
 };
 
 let accessKeyIdFromDb = false;
-// eslint-disable-next-line no-unused-vars
 let secretAccessKeyFromDb = false;
 
-function fetchSettings(callback) {
-	db.getObjectFields(Package.name, Object.keys(settings), (err, newSettings) => {
-		if (err) {
-			winston.error(err.message);
-			if (typeof callback === 'function') {
-				callback(err);
-			}
-			return;
-		}
 
-		accessKeyIdFromDb = false;
-		secretAccessKeyFromDb = false;
+plugin.load = async function (params) {
+	await fetchSettings();
 
-		if (newSettings.accessKeyId) {
-			settings.accessKeyId = newSettings.accessKeyId;
-			accessKeyIdFromDb = true;
-		} else {
-			settings.accessKeyId = false;
-		}
+	const adminRoute = '/admin/plugins/s3-uploads';
+	const { router, middleware } = params;
+	routeHelpers.setupAdminPageRoute(router, adminRoute, renderAdmin);
 
-		if (newSettings.secretAccessKey) {
-			settings.secretAccessKey = newSettings.secretAccessKey;
-			secretAccessKeyFromDb = false;
-		} else {
-			settings.secretAccessKey = false;
-		}
-
-		if (!newSettings.bucket) {
-			settings.bucket = process.env.S3_UPLOADS_BUCKET || '';
-		} else {
-			settings.bucket = newSettings.bucket;
-		}
-
-		if (!newSettings.host) {
-			settings.host = process.env.S3_UPLOADS_HOST || '';
-		} else {
-			settings.host = newSettings.host;
-		}
-
-		if (!newSettings.endpoint) {
-			settings.endpoint = process.env.S3_UPLOADS_ENDPOINT || '';
-		} else {
-			settings.endpoint = newSettings.endpoint;
-		}
-
-		if (!newSettings.path) {
-			settings.path = process.env.S3_UPLOADS_PATH || '';
-		} else {
-			settings.path = newSettings.path;
-		}
-
-		if (!newSettings.region) {
-			settings.region = process.env.AWS_DEFAULT_REGION || '';
-		} else {
-			settings.region = newSettings.region;
-		}
-
-		if (!newSettings.acl) {
-			settings.acl = process.env.S3_UPLOADS_ACL || '';
-		} else {
-			settings.acl = newSettings.acl;
-		}
-
-		if (typeof callback === 'function') {
-			callback();
-		}
-	});
-}
-
-function constructS3() {
-	return new S3.S3Client({
-		region: settings.region,
-		endpoint: settings.endpoint,
-		credentials: {
-			accessKeyId: settings.accessKeyId,
-			secretAccessKey: settings.secretAccessKey,
-		},
-	});
-}
-
-function makeError(err) {
-	if (err instanceof Error) {
-		err.message = `${Package.name} :: ${err.message}`;
-	} else {
-		err = new Error(`${Package.name} :: ${err}`);
-	}
-
-	winston.error(err.message);
-	return err;
-}
-
-plugin.activate = function (data) {
-	if (data.id === 'nodebb-plugin-s3-uploads') {
-		fetchSettings();
-	}
-};
-
-plugin.deactivate = function (data) {
-	if (data.id === 'nodebb-plugin-s3-uploads') {
-		// pass
-	}
-};
-
-plugin.load = function (params, callback) {
-	fetchSettings((err) => {
-		if (err) {
-			winston.error(err.message);
-			return callback(err);
-		}
-		const adminRoute = '/admin/plugins/s3-uploads';
-		const { router, middleware } = params;
-		routeHelpers.setupAdminPageRoute(router, adminRoute, renderAdmin);
-
-		params.router.post(`/api${adminRoute}/s3settings`, middleware.applyCSRF, s3settings);
-		params.router.post(`/api${adminRoute}/credentials`, middleware.applyCSRF, credentials);
-
-		callback();
-	});
+	router.post(`/api${adminRoute}/s3settings`, middleware.applyCSRF, routeHelpers.tryRoute(s3settings));
+	router.post(`/api${adminRoute}/credentials`, middleware.applyCSRF, routeHelpers.tryRoute(credentials));
 };
 
 function renderAdmin(req, res) {
@@ -171,45 +59,73 @@ function renderAdmin(req, res) {
 		region: settings.region,
 		acl: settings.acl,
 		accessKeyId: (accessKeyIdFromDb && settings.accessKeyId) || '',
-		secretAccessKey: (accessKeyIdFromDb && settings.secretAccessKey) || '',
+		secretAccessKey: (secretAccessKeyFromDb && settings.secretAccessKey) || '',
 	};
 
 	res.render('admin/plugins/s3-uploads', data);
 }
 
-function s3settings(req, res, next) {
-	const data = req.body;
-	const newSettings = {
-		bucket: data.bucket || '',
-		endpoint: data.endpoint || '',
-		host: data.host || '',
-		path: data.path || '',
-		region: data.region || '',
-		acl: data.acl || '',
-	};
+async function fetchSettings() {
+	const newSettings = await db.getObjectFields(Package.name, Object.keys(settings));
+	accessKeyIdFromDb = !!newSettings.accessKeyId;
+	secretAccessKeyFromDb = !!newSettings.secretAccessKey;
 
-	saveSettings(newSettings, res, next);
+	settings.accessKeyId = newSettings.accessKeyId || process.env.AWS_ACCESS_KEY_ID || false;
+	settings.secretAccessKey = newSettings.secretAccessKey || process.env.AWS_SECRET_ACCESS_KEY || false;
+	settings.bucket = newSettings.bucket || process.env.S3_UPLOADS_BUCKET || '';
+	settings.host = newSettings.host || process.env.S3_UPLOADS_HOST || '';
+	settings.endpoint = newSettings.endpoint || process.env.S3_UPLOADS_ENDPOINT || '';
+	settings.path = newSettings.path || process.env.S3_UPLOADS_PATH || '';
+	settings.region = newSettings.region || process.env.AWS_DEFAULT_REGION || '';
+	settings.acl = newSettings.acl || process.env.S3_UPLOADS_ACL || '';
 }
 
-function credentials(req, res, next) {
-	const data = req.body;
-	const newSettings = {
-		accessKeyId: data.accessKeyId || '',
-		secretAccessKey: data.secretAccessKey || '',
-	};
-
-	saveSettings(newSettings, res, next);
-}
-
-function saveSettings(settings, res, next) {
-	db.setObject(Package.name, settings, (err) => {
-		if (err) {
-			return next(makeError(err));
-		}
-
-		fetchSettings();
-		res.json('Saved!');
+function constructS3() {
+	return new S3.S3Client({
+		region: settings.region,
+		endpoint: settings.endpoint,
+		credentials: {
+			accessKeyId: settings.accessKeyId,
+			secretAccessKey: settings.secretAccessKey,
+		},
 	});
+}
+
+plugin.activate = async function (data) {
+	if (data.id === 'nodebb-plugin-s3-uploads') {
+		await fetchSettings();
+	}
+};
+
+async function s3settings(req, res) {
+	const data = req.body;
+	const newSettings = {
+		bucket: (data.bucket || '').trim(),
+		endpoint: (data.endpoint || '').trim(),
+		host: (data.host || '').trim(),
+		path: (data.path || '').trim(),
+		region: (data.region || '').trim(),
+		acl: (data.acl || '').trim(),
+	};
+
+	await saveSettings(newSettings, res);
+	res.json('Saved!');
+}
+
+async function credentials(req, res) {
+	const data = req.body;
+	const newSettings = {
+		accessKeyId: (data.accessKeyId || '').trim(),
+		secretAccessKey: (data.secretAccessKey || '').trim(),
+	};
+
+	await saveSettings(newSettings, res);
+	res.json('Saved!');
+}
+
+async function saveSettings(settings) {
+	await db.setObject(Package.name, settings);
+	await fetchSettings();
 }
 
 function isExtensionAllowed(filename, allowed) {
@@ -217,97 +133,87 @@ function isExtensionAllowed(filename, allowed) {
 	return !(allowed.length > 0 && (!extension || extension === '.' || !allowed.includes(extension)));
 }
 
-plugin.uploadImage = function (data, callback) {
+plugin.uploadImage = async function (data) {
 	const { image } = data;
 
 	if (!image) {
 		winston.error('invalid image');
-		return callback(new Error('invalid image'));
+		throw new Error('invalid image');
 	}
 
 	// check filesize vs. settings
 	if (image.size > parseInt(meta.config.maximumFileSize, 10) * 1024) {
 		winston.error(`error:file-too-big, ${meta.config.maximumFileSize}`);
-		return callback(new Error(`[[error:file-too-big, ${meta.config.maximumFileSize}]]`));
+		throw new Error(`[[error:file-too-big, ${meta.config.maximumFileSize}]]`);
 	}
 
 	const type = image.url ? 'url' : 'file';
-	const allowed = fileModule.allowedExtensions();
 
-	if (type === 'file') {
-		if (!image.path) {
-			return callback(new Error('invalid image path'));
-		}
-
-		if (!isExtensionAllowed(image.name, allowed)) {
-			return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
-		}
-
-		fs.readFile(image.path, (err, buffer) => {
-			uploadToS3(image.name, err, buffer, callback);
-		});
-	} else {
-		if (!isExtensionAllowed(image.url, allowed)) {
-			return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
-		}
-
-		const filename = image.url.split('/').pop();
-
-		const imageDimension = parseInt(meta.config.profileImageDimension, 10) || 128;
-
-		// Resize image.
-		im(request(image.url), filename)
-			.resize(`${imageDimension}^`, `${imageDimension}^`)
-			.stream((err, stdout) => {
-				if (err) {
-					return callback(makeError(err));
-				}
-
-				// This is sort of a hack - We"re going to stream the gm output to a buffer and then upload.
-				// See https://github.com/aws/aws-sdk-js/issues/94
-				let buf = Buffer.alloc(0);
-				stdout.on('data', (d) => {
-					buf = Buffer.concat([buf, d]);
-				});
-				stdout.on('end', () => {
-					uploadToS3(filename, null, buf, callback);
-				});
-			});
+	// uploading from a url
+	if (type === 'url') {
+		return await uploadFromUrl(image);
 	}
+
+	// regular file upload
+	if (!image.path) {
+		throw new Error('invalid image path');
+	}
+	const allowed = fileModule.allowedExtensions();
+	if (!isExtensionAllowed(image.name, allowed)) {
+		throw new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`);
+	}
+
+	const buffer = await fs.promises.readFile(image.path);
+	return await uploadToS3(image.name, buffer);
 };
 
-plugin.uploadFile = function (data, callback) {
+async function uploadFromUrl(image) {
+	const allowed = fileModule.allowedExtensions();
+	if (!isExtensionAllowed(image.url, allowed)) {
+		throw new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`);
+	}
+	const response = await fetch(image.url);
+	if (!response.ok) throw new Error(`Failed to fetch image from URL: ${response.statusText}`);
+
+	const arrayBuffer = await response.arrayBuffer();
+	const inputBuffer = Buffer.from(arrayBuffer);
+
+	const filename = image.url.split('/').pop();
+	const imageDimension = parseInt(meta.config.profileImageDimension, 10) || 128;
+
+	const resizedBuffer = await sharp(inputBuffer)
+		.resize(imageDimension, imageDimension, { fit: 'cover' });
+
+	return await uploadToS3(filename, resizedBuffer);
+}
+
+plugin.uploadFile = async function (data) {
 	const { file } = data;
 
 	if (!file) {
-		return callback(new Error('invalid file'));
+		throw new Error('invalid file');
 	}
 
 	if (!file.path) {
-		return callback(new Error('invalid file path'));
+		throw new Error('invalid file path');
 	}
 
 	// check filesize vs. settings
 	if (file.size > parseInt(meta.config.maximumFileSize, 10) * 1024) {
 		winston.error(`error:file-too-big, ${meta.config.maximumFileSize}`);
-		return callback(new Error(`[[error:file-too-big, ${meta.config.maximumFileSize}]]`));
+		throw new Error(`[[error:file-too-big, ${meta.config.maximumFileSize}]]`);
 	}
 
 	const allowed = fileModule.allowedExtensions();
 	if (!isExtensionAllowed(file.name, allowed)) {
-		return callback(new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`));
+		throw new Error(`[[error:invalid-file-type, ${allowed.join('&#44; ')}]]`);
 	}
 
-	fs.readFile(file.path, (err, buffer) => {
-		uploadToS3(file.name, err, buffer, callback);
-	});
+	const buffer = await fs.promises.readFile(file.path);
+	return await uploadToS3(file.name, buffer);
 };
 
-async function uploadToS3(filename, err, buffer, callback) {
-	if (err) {
-		return callback(makeError(err));
-	}
-
+async function uploadToS3(filename, buffer) {
 	let s3Path;
 	if (settings.path && settings.path.length > 0) {
 		s3Path = settings.path;
@@ -333,37 +239,33 @@ async function uploadToS3(filename, err, buffer, callback) {
 		params.ACL = settings.ACL;
 	}
 
-	try {
-		const s3Client = constructS3();
-		await s3Client.send(new S3.PutObjectCommand(params));
+	const s3Client = constructS3();
+	await s3Client.send(new S3.PutObjectCommand(params));
 
-		// amazon has https enabled, we use it by default
-		let host = `https://${params.Bucket}.s3.amazonaws.com`;
-		if (settings.host && settings.host.length > 0) {
-			host = settings.host;
-			// host must start with http or https
-			if (!host.startsWith('http')) {
-				host = `http://${host}`;
-			}
+	// amazon has https enabled, we use it by default
+	let host = `https://${params.Bucket}.s3.amazonaws.com`;
+	if (settings.host && settings.host.length > 0) {
+		host = settings.host;
+		// host must start with http or https
+		if (!host.startsWith('http')) {
+			host = `http://${host}`;
 		}
-
-		callback(null, {
-			name: filename,
-			url: `${host}/${params.Key}`,
-		});
-	} catch (err) {
-		callback(makeError(err));
 	}
+
+	return {
+		name: filename,
+		url: `${host}/${params.Key}`,
+	};
 }
 
 plugin.admin = {};
 
-plugin.admin.menu = function (custom_header, callback) {
+plugin.admin.menu = function (custom_header) {
 	custom_header.plugins.push({
 		route: '/plugins/s3-uploads',
 		icon: 'fa-envelope-o',
 		name: 'S3 Uploads',
 	});
 
-	callback(null, custom_header);
+	return custom_header;
 };
