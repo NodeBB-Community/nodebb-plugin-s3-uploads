@@ -1,10 +1,10 @@
 # 🍴 _This is a fork_
 
-This package is published on npm as [@nodebb-community/nodebb-plugin-s3-uploads](https://www.npmjs.com/package/@nodebb-community/nodebb-plugin-s3-uploads-updated)
+This package is published on npm as [@nodebb/nodebb-plugin-s3-uploads](https://www.npmjs.com/package/@nodebb/nodebb-plugin-s3-uploads)
 
 This repository is a further fork of the fork by [LouiseMcMahon](//github.com/LouiseMcMahon), with the following changes:
 
-1. Compatibility with v3.x of NodeBB
+1. Compatibility with v3.x and v4.x of NodeBB
 1. Implemented [eslint-config-nodebb](https://github.com/NodeBB/eslint-config-nodebb/)
 1. [feat: update allowMimeTypes to match latest NodeBB](https://github.com/LouiseMcMahon/nodebb-plugin-s3-uploads/pull/28)
 1. [fix: outdated module require statements](https://github.com/LouiseMcMahon/nodebb-plugin-s3-uploads/pull/27)
@@ -12,11 +12,7 @@ This repository is a further fork of the fork by [LouiseMcMahon](//github.com/Lo
 
 # NodeBB S3 Uploads Plugin
 
-[![Dependency Status](https://david-dm.org/LouiseMcMahon/nodebb-plugin-s3-uploads.svg)](https://david-dm.org/LewisMcMahon/nodebb-plugin-s3-uploads)
-
-This plugin is a fork of [nodebb-plugin-s3-uploads](https://github.com/earthsenze/nodebb-plugin-s3-uploads) as it was no longer being maintained
-
-`npm install @nodebb-community/nodebb-plugin-s3-uploads`
+`npm install @nodebb/nodebb-plugin-s3-uploads`
 
 | Plugin Version | Dependency     | Version Requirement     |
 | ---------------| -------------- |:-----------------------:|
