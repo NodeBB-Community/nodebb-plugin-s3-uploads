@@ -235,8 +235,8 @@ async function uploadToS3(filename, buffer) {
 		ContentLength: buffer.length,
 		ContentType: mime.getType(filename),
 	};
-	if (settings.ACL) {
-		params.ACL = settings.ACL;
+	if (settings.acl) {
+		params.ACL = settings.acl;
 	}
 
 	const s3Client = constructS3();
